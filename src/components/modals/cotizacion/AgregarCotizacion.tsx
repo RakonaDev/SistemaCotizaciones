@@ -3,39 +3,27 @@
 import BuscarCliente from "@/components/forms/BuscarCliente";
 
 import { Input } from "@/components/forms/Input";
+import { Global } from "@/database/Global";
 import { CotizacionAgregarInterface, CotizacionAgregarServicio, CotizacionCajaAgregar } from "@/database/interfaces/CotizacionGeneralInterface";
-import { CotizacionForm } from "@/database/interfaces/CotizacionZustandInterface";
 import { ServicioInterface } from "@/database/interfaces/ServicioInterface";
 import { CotizacionAgregarSchema } from "@/database/schema/CotizacionSchema";
 import { calcularDiasEntreFechas } from "@/logic/calcularDiasEntreFechas";
-// @ts-ignore
-import CalculoTotalWorker from "@/workers/calculoTotal.worker";
+
+import axios from "axios";
 import { FieldArray, Formik, FormikErrors, useFormik } from "formik";
-import { Delete, Plus, Trash, Trash2, X } from "lucide-react";
+import { Delete, Plus, Trash, X } from "lucide-react";
 import { motion } from "motion/react";
 import { nanoid } from "nanoid";
-import { ChangeEvent, useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-/*
-const serviciosInput: ServicioInterface[] = [
-  {
-    id: 1,
-    nombre: 'Area mecanizada',
-    tipo: 'AREA'
-  },
-  {
-    id: 2,
-    nombre: 'Area de trabajo',
-    tipo: 'AREA'
-  }
-]
-*/
 
 export default function AgregarCotizacion({ serviciosData }: { serviciosData: ServicioInterface[] }) {
 
-  const [servicios, setServicios] = useState<ServicioInterface[] | null>(serviciosData)
+  const [servicios,] = useState<ServicioInterface[] | null>(serviciosData)
+  const router = useRouter()
 
+  
 
   const initialValues: CotizacionAgregarInterface = {
     descripcion: '',
@@ -48,11 +36,22 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
     cotizaciones: [],
   }
 
-  const agregar = (values: CotizacionAgregarInterface) => {
+  const agregar = async (values: CotizacionAgregarInterface) => {
     console.log(values)
     if (values.cotizaciones.length === 0) {
       toast.error('Al menos debe haber 1 costeo')
       return
+    }
+
+    const res = await axios.post(`${Global.api}/cotizaciones`, values, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (res.status === 201) {
+      toast.success(res.data.message)
+      router.push('/sistema/cotizaciones')
     }
   }
 
