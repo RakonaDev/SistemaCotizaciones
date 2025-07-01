@@ -20,9 +20,9 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
   const [servicios, setServicios] = useState<CotizacionGeneralInterface[]>(cotizacionData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedServicio, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create")
+  const [, setIsModalOpen] = useState(false)
+  const [, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
+  const [, setModalMode] = useState<"create" | "edit">("create")
   const router = useRouter()
 
   const itemsPerPage = 10
@@ -87,19 +87,6 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
         }
       }
     });
-  }
-
-  const handleSave = (servicioData: CotizacionGeneralInterface) => {
-    if (modalMode === "create") {
-      
-      setServicios((prev) => [...prev, servicioData])
-    } else {
-      setServicios((prev) =>
-        prev.map((servicio) =>
-          servicio.id === (servicioData as CotizacionGeneralInterface).id ? (servicioData as CotizacionGeneralInterface) : servicio,
-        ),
-      )
-    }
   }
 
   return (

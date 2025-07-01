@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Bell, Search, User, Settings, LogOut } from "lucide-react"
+import { Search, User, Settings, LogOut } from "lucide-react"
 import { useState } from "react"
 
 interface HeaderProps {
