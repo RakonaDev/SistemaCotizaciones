@@ -7,6 +7,6 @@ export const Global = {
 */
 
 export const Global = {
-  api: 'https://apicotizacion.exportando.online//api',
+  api: 'https://apicotizacion.exportando.online/api',
   apiImagen: 'https://apicotizacion.exportando.online/'
 }

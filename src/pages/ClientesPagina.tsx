@@ -85,7 +85,7 @@ const montserrat = Montserrat({
 })
 
 export default function ClientesPage({ clientesData }: { clientesData: ClientesInterface[] }) {
-  const [clientes, setClientes] = useState<ClientesInterface[]>(clientesData)
+  const [clientes, setClientes] = useState<ClientesInterface[]>(clientesData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)

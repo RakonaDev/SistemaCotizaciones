@@ -17,7 +17,7 @@ const montserrat = Montserrat({
 })
 
 export default function ServiciosPage({ servicioData }: { servicioData: ServicioInterface[] }) {
-  const [servicios, setServicios] = useState<ServicioInterface[]>(servicioData)
+  const [servicios, setServicios] = useState<ServicioInterface[]>(servicioData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)

@@ -146,8 +146,8 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Código</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Descripcion</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold hidden xl:table-cell">Cliente</th>
-                <th className="px-6 py-4 text-left text-gray-600 font-bold">GG</th>
-                <th className="px-6 py-4 text-left text-gray-600 font-bold">Utilidad</th>
+                <th className="px-6 py-4 text-left text-gray-600 font-bold">Fecha Inicial</th>
+                <th className="px-6 py-4 text-left text-gray-600 font-bold">Días de Entrega</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Monto Total</th>
                 <th className="px-6 py-4 text-center text-gray-600 font-bold">Acciones</th>
               </tr>
@@ -161,8 +161,12 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
                   transition={{ delay: index * 0.1 }}
                   className="border-t border-slate-200 hover:bg-secondary transition-colors group"
                 >
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.id}</td>
                   <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.descripcion}</td>
                   <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{servicio.cliente?.nombre}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.fecha}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.dias_entrega}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">$ {servicio.monto_total}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center space-x-2">
                       <motion.button
