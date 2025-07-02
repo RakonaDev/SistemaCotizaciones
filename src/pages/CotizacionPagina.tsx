@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
-import { Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight, Eye } from "lucide-react"
 import { Montserrat } from "next/font/google"
 import Swal from "sweetalert2"
 import axios, { AxiosError } from "axios"
@@ -10,19 +10,20 @@ import { Global } from "@/database/Global"
 import { toast } from "sonner"
 import { CotizacionGeneralInterface } from "@/database/interfaces/CotizacionGeneralInterface"
 import { useRouter } from "next/navigation"
+import CotizacionModal from "@/components/forms/cotizacion/CotizacionModal"
+import { parseDateToTable } from "@/logic/parseDateToTable"
 
 const montserrat = Montserrat({
   subsets: ["latin"]
 })
 
-export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: CotizacionGeneralInterface[] }) {
+export default function CotizacionPagina({ cotizacionData }: { cotizacionData: CotizacionGeneralInterface[] }) {
 
   const [servicios, setServicios] = useState<CotizacionGeneralInterface[]>(cotizacionData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [, setIsModalOpen] = useState(false)
-  const [, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
-  const [, setModalMode] = useState<"create" | "edit">("create")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedCotizacion, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
   const router = useRouter()
 
   const itemsPerPage = 10
@@ -30,8 +31,8 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
   // Filtrar servicios
   const filteredClientes = useMemo(() => {
     return servicios.filter(
-      (servicio) =>
-        servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+      (cotizacion) =>
+        cotizacion.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [servicios, searchTerm])
 
@@ -44,17 +45,16 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
   // Funciones CRUD
   const handleCreate = () => {
     router.push('/sistema/cotizacion/agregar')
-    setModalMode("create")
-    setSelectedCliente(null)
-    setIsModalOpen(true)
   }
 
-  const handleEdit = (servicio: CotizacionGeneralInterface) => {
-    setModalMode("edit")
-    setSelectedCliente(servicio)
-    console.log(servicio)
-    setIsModalOpen(true)
+  const handleEdit = (cotizacion: CotizacionGeneralInterface) => {
+    router.push('/sistema/cotizacion/editar/'+ cotizacion.id)
   }
+
+  const handleShow = (cotizacion: CotizacionGeneralInterface) => {
+    setSelectedCliente(cotizacion)
+    setIsModalOpen(true)
+  } 
 
   const handleDelete = (id: number) => {
     Swal.fire({
@@ -76,7 +76,7 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
           })
           if (response.status === 200) {
             toast.success(response.data.message)
-            setServicios((prev) => prev.filter((servicio) => servicio.id !== id))
+            setServicios((prev) => prev.filter((cotizacion) => cotizacion.id !== id))
           }
         } catch (err) {
           if (err instanceof AxiosError) {
@@ -147,42 +147,52 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Descripcion</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold hidden xl:table-cell">Cliente</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Fecha Inicial</th>
+                <th className="px-6 py-4 text-left text-gray-600 font-bold">Fecha Final</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Días de Entrega</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Monto Total</th>
                 <th className="px-6 py-4 text-center text-gray-600 font-bold">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white p-2">
-              {currentClientes.map((servicio, index) => (
+              {currentClientes.map((cotizacion, index) => (
                 <motion.tr
-                  key={servicio.id}
+                  key={cotizacion.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className="border-t border-slate-200 hover:bg-secondary transition-colors group"
                 >
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.id}</td>
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.descripcion}</td>
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{servicio.cliente?.nombre}</td>
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.fecha}</td>
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{servicio.dias_entrega}</td>
-                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">$ {servicio.monto_total}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{cotizacion.id}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{cotizacion.descripcion}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{cotizacion.cliente?.nombre}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{(parseDateToTable(String(cotizacion.fecha_inicial)))}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{parseDateToTable(String(cotizacion.fecha_final))}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">{cotizacion.dias_entrega}</td>
+                  <td className="px-6 py-4 group-hover:text-white text-black duration-300 transition-colors">$ {cotizacion.monto_total}</td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1">
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleEdit(servicio)}
-                        className="p-2 text-green-400 hover:text-green-500 hover:bg-[#576CBC]/20 rounded-lg transition-all duration-200"
+                        onClick={() => handleShow(cotizacion)}
+                        className="p-1 text-blue-400 hover:text-blue-500 hover:bg-blue-500/20 rounded-lg transition-all duration-200"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleEdit(cotizacion)}
+                        className="p-1 text-green-400 hover:text-green-500 hover:bg-[#576CBC]/20 rounded-lg transition-all duration-200"
                       >
                         <Edit className="w-4 h-4" />
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(servicio.id)}
-                        className="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-all duration-200"
+                        onClick={() => handleDelete(cotizacion.id)}
+                        className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
                       </motion.button>
+
                     </div>
                   </td>
                 </motion.tr>
@@ -214,8 +224,8 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-1 rounded-lg text-sm transition-all duration-200 ${currentPage === page
-                        ? "bg-secondary text-white font-semibold"
-                        : "text-secondary hover:bg-[#576CBC]/20"
+                      ? "bg-secondary text-white font-semibold"
+                      : "text-secondary hover:bg-[#576CBC]/20"
                       }`}
                   >
                     {page}
@@ -234,6 +244,12 @@ export default function CotizacionPagina ({ cotizacionData }: { cotizacionData: 
           </div>
         )}
       </motion.div>
+
+      <CotizacionModal 
+        isOpen={isModalOpen}
+        cotizacion={selectedCotizacion}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }

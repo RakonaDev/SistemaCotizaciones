@@ -16,15 +16,17 @@ interface Cliente {
 interface ClienteSearchProps {
   onClienteSelect?: (cliente: Cliente) => void;
   placeholder?: string;
+  nombreCliente?: string
   apiUrl?: string;
 }
 
 const BuscarCliente: React.FC<ClienteSearchProps> = ({ 
-  onClienteSelect, 
+  onClienteSelect,
+  nombreCliente,
   placeholder = "Buscar cliente...",
   apiUrl = "/api/clientes/buscar"
 }) => {
-  const [query, setQuery] = useState<string>('');
+  const [query, setQuery] = useState<string>(nombreCliente || '');
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');

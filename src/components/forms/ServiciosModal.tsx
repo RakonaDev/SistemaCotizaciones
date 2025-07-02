@@ -173,7 +173,7 @@ export default function ServiciosModal({ isOpen, onClose, onSave, servicio, mode
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-[#576CBC]/30">
               <h2 className="text-xl font-bold text-secondary">
-                {mode === "create" ? "Nuevo Cliente" : "Editar Cliente"}
+                {mode === "create" ? "Nuevo Servicio" : "Editar Servicio"}
               </h2>
               <button onClick={onClose} className="text-secondary/70 hover:text-terciary transition-colors">
                 <X className="w-6 h-6" />

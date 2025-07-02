@@ -7,6 +7,7 @@ export const Global = {
 */
 
 export const Global = {
-  api: 'https://apicotizacion.exportando.online/api',
-  apiImagen: 'https://apicotizacion.exportando.online/'
+  api: process.env.NEXT_PUBLIC_API,
+  apiImagen: process.env.NEXT_PUBLIC_API_IMAGEN
 }
+

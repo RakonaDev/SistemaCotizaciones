@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Search, User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut } from "lucide-react"
 import { useState } from "react"
 
 interface HeaderProps {
@@ -23,18 +23,6 @@ export default function Header({ title }: HeaderProps) {
           >
             {title}
           </motion.h1>
-        </div>
-
-        {/* Center - Search */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#A5D7E8]/80" />
-            <input
-              type="text"
-              placeholder="Buscar..."
-              className="w-full pl-12 pr-4 py-2 bg-secondary/80 border border-secondary rounded-lg text-[#A5D7E8] placeholder-[#A5D7E8]/80 focus:outline-none focus:border-[#A5D7E8] focus:ring-2 focus:ring-[#A5D7E8]/20 transition-all duration-300"
-            />
-          </div>
         </div>
 
         {/* Right side */}

@@ -8,6 +8,7 @@ import { CotizacionAgregarInterface, CotizacionAgregarServicio, CotizacionCajaAg
 import { ServicioInterface } from "@/database/interfaces/ServicioInterface";
 import { CotizacionAgregarSchema } from "@/database/schema/CotizacionSchema";
 import { calcularDiasEntreFechas } from "@/logic/calcularDiasEntreFechas";
+import { parseDate } from "@/logic/parseDate";
 
 import axios from "axios";
 import { FieldArray, Formik, FormikErrors, useFormik } from "formik";
@@ -18,22 +19,22 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-export default function AgregarCotizacion({ serviciosData }: { serviciosData: ServicioInterface[] }) {
+export default function EditarCotizacionForm({ serviciosData, cotizacionData }: { serviciosData: ServicioInterface[], cotizacionData: CotizacionAgregarInterface }) {
 
-  const [servicios,] = useState<ServicioInterface[] | null>(serviciosData)
+  const [servicios,] = useState<ServicioInterface[] | null>(serviciosData ?? [])
+  const [cotizacion, ] = useState<CotizacionAgregarInterface>(cotizacionData ?? {})
   const router = useRouter()
 
-  
 
   const initialValues: CotizacionAgregarInterface = {
-    descripcion: '',
-    precio_total: 0,
-    fecha_inicial: '',
-    fecha_final: '',
-    id_cliente: 0,
-    dias: 0,
+    descripcion: cotizacion.descripcion,
+    precio_total: cotizacion.precio_total,
+    fecha_inicial: String(cotizacion.fecha_inicial),
+    fecha_final: String(cotizacion.fecha_final),
+    id_cliente: cotizacion.id_cliente,
+    dias: cotizacion.dias,
 
-    cotizaciones: [],
+    cotizaciones: cotizacion.cotizaciones,
   }
 
   const agregar = async (values: CotizacionAgregarInterface) => {
@@ -43,13 +44,13 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
       return
     }
 
-    const res = await axios.post(`${Global.api}/cotizaciones`, values, {
+    const res = await axios.put(`${Global.api}/cotizaciones/${cotizacion.id}`, values, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
 
-    if (res.status === 201) {
+    if (res.status === 200) {
       toast.success(res.data.message)
       router.push('/sistema/cotizacion')
     }
@@ -66,14 +67,14 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
 
   } = useFormik<CotizacionAgregarInterface>({
     initialValues: {
-      descripcion: '',
-      precio_total: 0,
-      fecha_inicial: '',
-      fecha_final: '',
-      id_cliente: 0,
-      dias: 0,
+      descripcion: cotizacion.descripcion,
+      precio_total: cotizacion.precio_total,
+      fecha_inicial: parseDate(cotizacion.fecha_inicial),
+      fecha_final: parseDate(cotizacion.fecha_final),
+      id_cliente: cotizacion.id_cliente,
+      dias: cotizacion.dias,
 
-      cotizaciones: [],
+      cotizaciones: cotizacion.cotizaciones,
     },
     validationSchema: CotizacionAgregarSchema,
     onSubmit: agregar,
@@ -160,9 +161,13 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
                 onBlur={handleBlur}
               />
 
-              <BuscarCliente apiUrl="buscarCliente" onClienteSelect={(cliente) => {
-                setFieldValue('id_cliente', cliente.id)
-              }} />
+              <BuscarCliente
+                apiUrl="buscarCliente"
+                onClienteSelect={(cliente) => {
+                  setFieldValue('id_cliente', cliente.id)
+                }} 
+                nombreCliente={cotizacion.cliente?.nombre}
+              />
 
               <Input
                 type="date"
@@ -242,10 +247,10 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
             </div>
 
             <button
-              className="px-4 py-2 bg-primary text-white rounded-xl cursor-pointer hover:bg-secondary duration-300 transition-all"
+              className="px-4 py-2 bg-primary mt-10 text-white rounded-xl cursor-pointer hover:bg-secondary duration-300 transition-all"
               type="submit"
             >
-              Registrar Cotización
+              Editar Cotización
             </button>
           </form>
         </Formik>
@@ -507,18 +512,18 @@ function AreaForm({
   }, [values.cotizaciones[indexPadre].servicios[index].horas, values.cotizaciones[indexPadre].servicios[index].costo])
 
   useEffect(() => {
-    
+
     const servicios = values.cotizaciones?.[indexPadre]?.servicios || [];
     const total = servicios.reduce(
       (acc: number, servicio) => Number(acc || 0) + (servicio.subtotal || 0),
       0
     );
-  
+
     setFieldValue(`cotizaciones.${indexPadre}.gg`, total * 0.1)
     setFieldValue(`cotizaciones.${indexPadre}.utilidad`, total * 0.3)
     setFieldValue(`cotizaciones.${indexPadre}.costo_directo`, total)
     setFieldValue(`cotizaciones.${indexPadre}.precio_unit`, Number(total) + total * 0.1 + total * 0.3);
-    
+
   }, [values.cotizaciones?.[indexPadre]?.servicios, indexPadre, setFieldValue]);
 
   const borrarArea = () => {

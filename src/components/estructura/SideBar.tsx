@@ -1,7 +1,9 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { Users, Home, ShoppingCart, BarChart3, Settings, LogOut, ChevronRight, LucideProps } from "lucide-react"
+import { Users, Home, ShoppingCart, BarChart3, 
+  // Settings, 
+  LogOut, ChevronRight, LucideProps } from "lucide-react"
 import Link from "next/link"
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react"
 import LogosPeru from "@/assets/logoIcon.webp"
@@ -25,7 +27,7 @@ const menuItems: MenuItems[] = [
   { id: "clientes", label: "Clientes", icon: Users, href: '/sistema/clientes' },
   { id: "servicios", label: "Servicios", icon: ShoppingCart, href: '/sistema/servicios' },
   { id: "cotizacion", label: "Cotizacion", icon: BarChart3, href: '/sistema/cotizacion' },
-  { id: "configuracion", label: "Configuración", icon: Settings, href: '/sistema/configuracion' },
+  // { id: "configuracion", label: "Configuración", icon: Settings, href: '/sistema/configuracion' },
 ]
 
 export default function Sidebar({ activeItem, setActiveItem, isMobile }: SidebarProps) {

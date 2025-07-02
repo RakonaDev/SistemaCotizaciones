@@ -4,7 +4,9 @@ import { CotizacionInterface } from "./CotizacionInterface";
 
 export interface CotizacionGeneralInterface {
   id: number;
-  fecha: string;
+  fecha_inicial: Date;
+  fecha_final: Date
+  precio_total: number
   dias_entrega: number;
   descripcion: string;
   monto_total: number;
@@ -19,13 +21,14 @@ export interface CotizacionGeneralInterface {
 
 
 export interface CotizacionAgregarInterface {
+  id?: number
   descripcion: string,
   precio_total: number,
   fecha_inicial: string,
   fecha_final: string,
   id_cliente: number,
   dias: number,
-
+  cliente?: ClientesInterface,
   cotizaciones: CotizacionCajaAgregar[]
 }
 
