@@ -8,6 +8,7 @@ import { CotizacionAgregarInterface, CotizacionAgregarServicio, CotizacionCajaAg
 import { ServicioInterface } from "@/database/interfaces/ServicioInterface";
 import { CotizacionAgregarSchema } from "@/database/schema/CotizacionSchema";
 import { calcularDiasEntreFechas } from "@/logic/calcularDiasEntreFechas";
+import { useLoading } from "@/zustand/useLoading";
 
 import axios from "axios";
 import { FieldArray, Formik, FormikErrors, useFormik } from "formik";
@@ -22,8 +23,8 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
 
   const [servicios,] = useState<ServicioInterface[] | null>(serviciosData)
   const router = useRouter()
+  const { setLoading } = useLoading()
 
-  
 
   const initialValues: CotizacionAgregarInterface = {
     descripcion: '',
@@ -37,21 +38,29 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
   }
 
   const agregar = async (values: CotizacionAgregarInterface) => {
-    console.log(values)
-    if (values.cotizaciones.length === 0) {
-      toast.error('Al menos debe haber 1 costeo')
-      return
-    }
-
-    const res = await axios.post(`${Global.api}/cotizaciones`, values, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    try {
+      setLoading(true)
+      console.log(values)
+      if (values.cotizaciones.length === 0) {
+        toast.error('Al menos debe haber 1 costeo')
+        return
       }
-    })
 
-    if (res.status === 201) {
-      toast.success(res.data.message)
-      router.push('/sistema/cotizacion')
+      const res = await axios.post(`${Global.api}/cotizaciones`, values, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+
+      if (res.status === 201) {
+        toast.success(res.data.message)
+        router.push('/sistema/cotizacion')
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error('Error al agregar cotización')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -507,18 +516,18 @@ function AreaForm({
   }, [values.cotizaciones[indexPadre].servicios[index].horas, values.cotizaciones[indexPadre].servicios[index].costo])
 
   useEffect(() => {
-    
+
     const servicios = values.cotizaciones?.[indexPadre]?.servicios || [];
     const total = servicios.reduce(
       (acc: number, servicio) => Number(acc || 0) + (servicio.subtotal || 0),
       0
     );
-  
+
     setFieldValue(`cotizaciones.${indexPadre}.gg`, total * 0.1)
     setFieldValue(`cotizaciones.${indexPadre}.utilidad`, total * 0.3)
     setFieldValue(`cotizaciones.${indexPadre}.costo_directo`, total)
     setFieldValue(`cotizaciones.${indexPadre}.precio_unit`, Number(total) + total * 0.1 + total * 0.3);
-    
+
   }, [values.cotizaciones?.[indexPadre]?.servicios, indexPadre, setFieldValue]);
 
   const borrarArea = () => {

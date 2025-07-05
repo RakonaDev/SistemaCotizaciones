@@ -9,6 +9,7 @@ import { ServicioInterface } from "@/database/interfaces/ServicioInterface";
 import { CotizacionAgregarSchema } from "@/database/schema/CotizacionSchema";
 import { calcularDiasEntreFechas } from "@/logic/calcularDiasEntreFechas";
 import { parseDate } from "@/logic/parseDate";
+import { useLoading } from "@/zustand/useLoading";
 
 import axios from "axios";
 import { FieldArray, Formik, FormikErrors, useFormik } from "formik";
@@ -22,8 +23,9 @@ import { toast } from "sonner";
 export default function EditarCotizacionForm({ serviciosData, cotizacionData }: { serviciosData: ServicioInterface[], cotizacionData: CotizacionAgregarInterface }) {
 
   const [servicios,] = useState<ServicioInterface[] | null>(serviciosData ?? [])
-  const [cotizacion, ] = useState<CotizacionAgregarInterface>(cotizacionData ?? {})
+  const [cotizacion,] = useState<CotizacionAgregarInterface>(cotizacionData ?? {})
   const router = useRouter()
+  const { setLoading } = useLoading()
 
 
   const initialValues: CotizacionAgregarInterface = {
@@ -38,21 +40,29 @@ export default function EditarCotizacionForm({ serviciosData, cotizacionData }: 
   }
 
   const agregar = async (values: CotizacionAgregarInterface) => {
-    console.log(values)
-    if (values.cotizaciones.length === 0) {
-      toast.error('Al menos debe haber 1 costeo')
-      return
-    }
-
-    const res = await axios.put(`${Global.api}/cotizaciones/${cotizacion.id}`, values, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    try {
+      setLoading(true)
+      console.log(values)
+      if (values.cotizaciones.length === 0) {
+        toast.error('Al menos debe haber 1 costeo')
+        return
       }
-    })
 
-    if (res.status === 200) {
-      toast.success(res.data.message)
-      router.push('/sistema/cotizacion')
+      const res = await axios.put(`${Global.api}/cotizaciones/${cotizacion.id}`, values, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+
+      if (res.status === 200) {
+        toast.success(res.data.message)
+        router.push('/sistema/cotizacion')
+      }
+    } catch (error) {
+      console.log(error)
+      toast.error('Error al editar cotización')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -165,7 +175,7 @@ export default function EditarCotizacionForm({ serviciosData, cotizacionData }: 
                 apiUrl="buscarCliente"
                 onClienteSelect={(cliente) => {
                   setFieldValue('id_cliente', cliente.id)
-                }} 
+                }}
                 nombreCliente={cotizacion.cliente?.nombre}
               />
 
