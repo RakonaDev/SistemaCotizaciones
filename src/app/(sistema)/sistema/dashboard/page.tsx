@@ -1,9 +1,17 @@
+'use server'
+
+import { getServerSideProps } from "@/logic/getServerSideProps";
 import DashboardContent from "@/pages/DashboardPagina";
 
-export default function page() {
+export default async function page() {
+
+  const data = await getServerSideProps('dashboard/resumen')
+  const dataCotizacion = await getServerSideProps('dashboard/cotizaciones')
+  console.log(dataCotizacion)
+
   return (
     <>
-      <DashboardContent />
+      <DashboardContent stats={data} dataCotizacion={dataCotizacion} />
     </>
   )
 }

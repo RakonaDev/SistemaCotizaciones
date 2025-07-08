@@ -1,19 +1,12 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { Users, Home, ShoppingCart, BarChart3, 
+import { Users,
   // Settings, 
   LogOut, ChevronRight, LucideProps } from "lucide-react"
 import Link from "next/link"
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react"
 import LogosPeru from "@/assets/logoIcon.webp"
-
-
-interface SidebarProps {
-  activeItem: string
-  setActiveItem: (item: string) => void
-  isMobile: boolean
-}
 
 interface MenuItems {
   id: string
@@ -22,15 +15,17 @@ interface MenuItems {
   href: string
 }
 
-const menuItems: MenuItems[] = [
-  { id: "dashboard", label: "Dashboard", icon: Home, href: '/sistema/dashboard' },
-  { id: "clientes", label: "Clientes", icon: Users, href: '/sistema/clientes' },
-  { id: "servicios", label: "Servicios", icon: ShoppingCart, href: '/sistema/servicios' },
-  { id: "cotizacion", label: "Cotizacion", icon: BarChart3, href: '/sistema/cotizacion' },
-  // { id: "configuracion", label: "Configuración", icon: Settings, href: '/sistema/configuracion' },
-]
+interface SidebarProps {
+  activeItem: string
+  setActiveItem: (item: string) => void
+  isMobile: boolean
+  menuItems: MenuItems[]
+}
 
-export default function Sidebar({ activeItem, setActiveItem, isMobile }: SidebarProps) {
+
+
+
+export default function Sidebar({ activeItem, setActiveItem, isMobile, menuItems }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 

@@ -140,7 +140,7 @@ export function TableBody({ children, className = "", ...props }: TableBodyProps
 export function TableRow({ children, className = "", ...props }: TableRowProps) {
   return (
     <tr
-      className={`border-b transition-colors hover:bg-gray-50/50 data-[state=selected]:bg-gray-50 dark:hover:bg-gray-800/50 dark:data-[state=selected]:bg-gray-800 ${className}`}
+      className={`border-b border-gray-200 transition-all ${className}`}
       {...props}
     >
       {children}
