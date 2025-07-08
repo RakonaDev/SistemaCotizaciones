@@ -3,6 +3,9 @@ import { FileText, Clock, Users, DollarSign } from "lucide-react";
 
 
 export function asignarIconoYColor(stats: Stat[]): Stat[] {
+  if (!stats) {
+    return []
+  }
   const configuracion: Record<string, { icon: any; color: string }> = {
     "Cotizaciones Totales": {
       icon: FileText,

@@ -50,6 +50,7 @@ export default function DashboardContent({ stats, dataCotizacion }: { stats: Sta
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCotizacion, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
+  const [statsFormteadadas] = useState(asignarIconoYColor(stats))
 
   useEffect(() => {
     if (stats.length !== 0) {
@@ -94,7 +95,7 @@ export default function DashboardContent({ stats, dataCotizacion }: { stats: Sta
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {asignarIconoYColor(stats).map((stat, index) => (
+        {statsFormteadadas && statsFormteadadas.map((stat, index) => (
           <div
             key={stat.title}
             className={`transition-all duration-500 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
