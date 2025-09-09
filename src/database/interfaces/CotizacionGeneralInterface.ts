@@ -28,6 +28,7 @@ export interface CotizacionAgregarInterface {
   fecha_final: string,
   id_cliente: number,
   dias: number,
+  
   cliente?: ClientesInterface,
   cotizaciones: CotizacionCajaAgregar[]
 }

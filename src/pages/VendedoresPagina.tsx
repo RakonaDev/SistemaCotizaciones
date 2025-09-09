@@ -3,8 +3,6 @@
 import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react"
-import { ClientesInterface } from "@/database/interfaces/ClientesInterface"
-import ClienteModal from "@/components/forms/ClienteModal"
 import { Montserrat } from "next/font/google"
 import Swal from "sweetalert2"
 import { AxiosError } from "axios"
@@ -12,99 +10,33 @@ import { Global } from "@/database/Global"
 import { toast } from "sonner"
 import { apiAuth } from "@/axios/apiAuth"
 import BotonExportar from "@/components/features/BotonExportar"
+import VendedorModal from "@/components/forms/VendedorModal"
+import { VendedoresInterface } from "@/database/interfaces/VendedoresInterface"
 
-// Datos de ejemplo
-/*
-const clientesIniciales: ClientesInterface[] = [
-  {
-    id: 1,
-    nombre: "Juan Pérez",
-    direccion: "Av. Principal 123",
-    ruc: "12345678901",
-    correo: "juan@email.com",
-    telefono: 987654321,
-  },
-  {
-    id: 2,
-    nombre: "María García",
-    direccion: "Calle Secundaria 456",
-    ruc: "10987654321",
-    correo: "maria@email.com",
-    telefono: 912345678,
-  },
-  {
-    id: 3,
-    nombre: "Carlos López",
-    direccion: "Jr. Los Olivos 789",
-    ruc: "11223344556",
-    correo: "carlos@email.com",
-    telefono: 998877665,
-  },
-  {
-    id: 4,
-    nombre: "Ana Martínez",
-    direccion: "Av. Los Pinos 321",
-    ruc: "99887766554",
-    correo: "ana@email.com",
-    telefono: 955443322,
-  },
-  {
-    id: 5,
-    nombre: "Pedro Rodríguez",
-    direccion: "Calle Las Flores 654",
-    ruc: "88776655443",
-    correo: "pedro@email.com",
-    telefono: 944332211,
-  },
-  {
-    id: 6,
-    nombre: "Laura Sánchez",
-    direccion: "Jr. El Sol 987",
-    ruc: "77665544332",
-    correo: "laura@email.com",
-    telefono: 933221100,
-  },
-  {
-    id: 7,
-    nombre: "Miguel Torres",
-    direccion: "Av. La Luna 147",
-    ruc: "66554433221",
-    correo: "miguel@email.com",
-    telefono: 922110099,
-  },
-  {
-    id: 8,
-    nombre: "Carmen Flores",
-    direccion: "Calle Estrella 258",
-    ruc: "55443322110",
-    correo: "carmen@email.com",
-    telefono: 911009988,
-  },
-]
-*/
+
 const montserrat = Montserrat({
   subsets: ["latin"]
 })
 
-export default function ClientesPage({ clientesData }: { clientesData: ClientesInterface[] }) {
-  const [clientes, setClientes] = useState<ClientesInterface[]>(clientesData ?? [])
+export default function VendedoresPage({ vendedoresData }: { vendedoresData: VendedoresInterface[] }) {
+  const [vendedores, setVendedores] = useState<VendedoresInterface[]>(vendedoresData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCliente, setSelectedCliente] = useState<ClientesInterface | null>(null)
+  const [selectedCliente, setSelectedCliente] = useState<VendedoresInterface | null>(null)
   const [modalMode, setModalMode] = useState<"create" | "edit">("create")
 
   const itemsPerPage = 10
 
-  // Filtrar clientes
+  // Filtrar vendedores
   const filteredClientes = useMemo(() => {
-    return clientes.filter(
-      (cliente) =>
-        cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cliente.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cliente.ruc.includes(searchTerm),
+    return vendedores.filter(
+      (vendedor) =>
+        vendedor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendedor.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendedor.apellido.includes(searchTerm),
     )
-  }, [clientes, searchTerm])
+  }, [vendedores, searchTerm])
 
   // Paginación
   const totalPages = Math.ceil(filteredClientes.length / itemsPerPage)
@@ -119,9 +51,9 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
     setIsModalOpen(true)
   }
 
-  const handleEdit = (cliente: ClientesInterface) => {
+  const handleEdit = (vendedor: VendedoresInterface) => {
     setModalMode("edit")
-    setSelectedCliente(cliente)
+    setSelectedCliente(vendedor)
     setIsModalOpen(true)
   }
 
@@ -137,7 +69,7 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await apiAuth.delete(`${Global.api}/clientes/${id}`, {
+          const response = await apiAuth.delete(`${Global.api}/vendedores/${id}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
@@ -145,7 +77,7 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
           })
           if (response.status === 200) {
             toast.success(response.data.message)
-            setClientes((prev) => prev.filter((cliente) => cliente.id !== id))
+            setVendedores((prev) => prev.filter((vendedor) => vendedor.id !== id))
           }
         } catch (err) {
           if (err instanceof AxiosError) {
@@ -158,17 +90,17 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
     });
   }
 
-  const handleSave = (clienteData: Omit<ClientesInterface, "id"> | ClientesInterface) => {
+  const handleSave = (clienteData: Omit<VendedoresInterface, "id"> | VendedoresInterface) => {
     if (modalMode === "create") {
-      const newCliente: ClientesInterface = {
-        ...(clienteData as Omit<ClientesInterface, "id">),
-        id: Math.max(...clientes.map((c) => c.id)) + 1,
+      const newCliente: VendedoresInterface = {
+        ...(clienteData as Omit<VendedoresInterface, "id">),
+        id: Math.max(...vendedores.map((c) => c.id ?? 1)) + 1,
       }
-      setClientes((prev) => [...prev, newCliente])
+      setVendedores((prev) => [...prev, newCliente])
     } else {
-      setClientes((prev) =>
-        prev.map((cliente) =>
-          cliente.id === (clienteData as ClientesInterface).id ? (clienteData as ClientesInterface) : cliente,
+      setVendedores((prev) =>
+        prev.map((vendedor) =>
+          vendedor.id === (clienteData as VendedoresInterface).id ? (clienteData as VendedoresInterface) : vendedor,
         ),
       )
     }
@@ -183,8 +115,8 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
       >
         <div>
-          <h1 className="text-3xl font-bold text-primary mb-2">Gestión de Clientes</h1>
-          <p className="text-primary">Administra tu base de datos de clientes</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">Gestión de Vendedores</h1>
+          <p className="text-primary">Administra tu base de datos de vendedores</p>
         </div>
 
         <div className="flex gap-1 items-center md:flex-row flex-col">
@@ -195,12 +127,12 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
             className="mt-4 sm:mt-0 flex justify-center md:w-fit w-full items-center space-x-2 px-4 py-2 bg-secondary text-white font-semibold rounded-lg hover:from-[#A5D7E8] hover:to-[#576CBC] transition-all duration-300"
           >
             <Plus className="w-5 h-5" />
-            <span>Nuevo Cliente</span>
+            <span>Nuevo Vendedor</span>
           </motion.button>
 
           <BotonExportar 
-            path="exportar-clientes" 
-            nombreArchivo="clientes" 
+            path="exportar-vendedores" 
+            nombreArchivo="vendedores" 
           />
         </div>
       </motion.div>
@@ -216,7 +148,7 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
           <input
             type="text"
-            placeholder="Buscar clientes..."
+            placeholder="Buscar vendedores..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 border border-[#576CBC]/30 rounded-lg text-secondary placeholder-secondary/50 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-300"
@@ -237,38 +169,38 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
               <tr>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Nombre</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold hidden md:table-cell">Dirección</th>
-                <th className="px-6 py-4 text-left text-gray-600 font-bold hidden lg:table-cell">RUC</th>
+                <th className="px-6 py-4 text-left text-gray-600 font-bold hidden lg:table-cell">Apellido</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold hidden sm:table-cell">Correo</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold hidden xl:table-cell">Teléfono</th>
                 <th className="px-6 py-4 text-center text-gray-600 font-bold">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white p-2">
-              {currentClientes.map((cliente, index) => (
+              {currentClientes.map((vendedor, index) => (
                 <motion.tr
-                  key={cliente.id}
+                  key={vendedor.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className="border-t border-slate-200 hover:bg-secondary transition-colors group"
                 >
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cliente.nombre}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{cliente.direccion}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden lg:table-cell">{cliente.ruc}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden sm:table-cell">{cliente.correo}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden xl:table-cell">{cliente.telefono}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{vendedor.nombre}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{vendedor.direccion}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden lg:table-cell">{vendedor.apellido}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden sm:table-cell">{vendedor.correo}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden xl:table-cell">{vendedor.telefono}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center space-x-2">
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleEdit(cliente)}
+                        onClick={() => handleEdit(vendedor)}
                         className="p-2 text-green-400 hover:text-green-500 hover:bg-[#576CBC]/20 rounded-lg transition-all duration-200"
                       >
                         <Edit className="w-4 h-4" />
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(cliente.id)}
+                        onClick={() => handleDelete(vendedor.id ?? 1)}
                         className="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -286,7 +218,7 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
           <div className="flex items-center justify-between px-6 py-4 border-t border-[#576CBC]/20">
             <div className="text-black text-sm">
               Mostrando {startIndex + 1} a {Math.min(endIndex, filteredClientes.length)} de {filteredClientes.length}{" "}
-              clientes
+              vendedores
             </div>
 
             <div className="flex items-center space-x-2">
@@ -327,11 +259,11 @@ export default function ClientesPage({ clientesData }: { clientesData: ClientesI
 
 
       {/* Modal */}
-      <ClienteModal
+      <VendedorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
-        cliente={selectedCliente}
+        vendedor={selectedCliente}
         mode={modalMode}
       />
     </div>

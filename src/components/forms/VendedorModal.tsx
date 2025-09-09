@@ -5,31 +5,31 @@ import type React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, User, MapPin, FileText, Mail, Phone, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { ClientesErrors, ClientesInterface } from "@/database/interfaces/ClientesInterface"
 import { InputIcon } from "./InputIcon"
 import { useFormik } from "formik"
-import { createClienteSchema, editClienteSchema } from "@/database/schema/ClienteSchema"
 import { AxiosError } from "axios"
 import { Global } from "@/database/Global"
 import { toast } from "sonner"
 import { apiAuth } from "@/axios/apiAuth"
+import { VendedorErrors, VendedoresInterface } from "@/database/interfaces/VendedoresInterface"
+import { createVendedorSchema, editVendedorSchema } from "@/database/schema/VendedorSchema"
 
 interface ClienteModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (cliente: Omit<ClientesInterface, "id"> | ClientesInterface) => void
-  cliente?: ClientesInterface | null
+  onSave: (vendedor: VendedoresInterface) => void
+  vendedor?: VendedoresInterface | null
   mode: "create" | "edit"
 }
 
-export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }: ClienteModalProps) {
+export default function VendedorModal({ isOpen, onClose, onSave, vendedor, mode }: ClienteModalProps) {
 
   const [loading, setLoading] = useState(false)
-  const [errores, setErrores] = useState<ClientesErrors>({
+  const [errores, setErrores] = useState<VendedorErrors>({
     correo: [],
     direccion: [],
     nombre: [],
-    ruc: [],
+    apellido: [],
     telefono: []
   })
 
@@ -44,22 +44,22 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
     setTouched
   } = useFormik({
     initialValues: {
-      nombre: cliente?.nombre || '',
-      direccion: cliente?.direccion || '',
-      ruc: cliente?.ruc || '',
-      correo: cliente?.correo || '',
-      telefono: cliente?.telefono || '',
+      nombre: vendedor?.nombre || '',
+      direccion: vendedor?.direccion || '',
+      apellido: vendedor?.apellido || '',
+      correo: vendedor?.correo || '',
+      telefono: vendedor?.telefono || '',
     },
-    validationSchema: mode === 'edit' ? editClienteSchema : createClienteSchema,
+    validationSchema: mode === 'edit' ? editVendedorSchema : createVendedorSchema,
     onSubmit: async (values) => {
       if (loading) return
       setLoading(true)
       if (mode === 'edit') {
         try {
-          const response = await apiAuth.put(`${Global.api}/clientes/${cliente?.id}`, values)
-          toast.success('Se ha editado correctamente el cliente')
+          const response = await apiAuth.put(`${Global.api}/vendedores/${vendedor?.id}`, values)
+          toast.success('Se ha editado correctamente el vendedor')
           if (response.status === 200) {
-            onSave({ ...response.data, id: cliente?.id })
+            onSave({ ...response.data, id: vendedor?.id })
             onClose()
           }
         } catch (err) {
@@ -75,8 +75,8 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
       } else {
 
         try {
-          const response = await apiAuth.post(`${Global.api}/clientes`, values)
-          toast.success('Se ha creado correctamente el cliente')
+          const response = await apiAuth.post(`${Global.api}/vendedores`, values)
+          toast.success('Se ha creado correctamente el vendedor')
 
           if (response.status === 201) {
             onSave(response.data)
@@ -98,58 +98,58 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
   })
 
   useEffect(() => {
-    if (cliente && mode === "edit") {
+    if (vendedor && mode === "edit") {
       setTouched({
         nombre: false,
         direccion: false,
-        ruc: false,
+        apellido: false,
         correo: false,
         telefono: false,
       })
       setErrores({
         nombre: [],
         direccion: [],
-        ruc: [],
+        apellido: [],
         correo: [],
         telefono: [],
       })
       setValues({
-        nombre: cliente.nombre,
-        direccion: cliente.direccion,
-        ruc: cliente.ruc,
-        correo: cliente.correo,
-        telefono: cliente.telefono,
+        nombre: vendedor.nombre,
+        direccion: vendedor.direccion,
+        apellido: vendedor.apellido,
+        correo: vendedor.correo,
+        telefono: vendedor.telefono,
       })
     } else {
       setTouched({
         nombre: false,
         direccion: false,
-        ruc: false,
+        apellido: false,
         correo: false,
         telefono: false,
       })
       setErrores({
         nombre: [],
         direccion: [],
-        ruc: [],
+        apellido: [],
         correo: [],
         telefono: [],
       })
       setValues({
         nombre: "",
         direccion: "",
-        ruc: "",
+        apellido: "",
         correo: "",
-        telefono: 0,
+        telefono: "",
       })
     }
-  }, [cliente, mode, isOpen])
+  }, [vendedor, mode, isOpen])
 
   /*
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (mode === "edit" && cliente) {
-      onSave({ ...formData, id: cliente.id })
+    if (mode === "edit" && vendedor) {
+      onSave({ ...formData, id: vendedor.id })
     } else {
       onSave(formData)
     }
@@ -189,7 +189,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-[#576CBC]/30">
               <h2 className="text-xl font-bold text-secondary">
-                {mode === "create" ? "Nuevo Cliente" : "Editar Cliente"}
+                {mode === "create" ? "Nuevo Vendedor" : "Editar Vendedor"}
               </h2>
               <button onClick={onClose} className="text-secondary/70 hover:text-terciary transition-colors">
                 <X className="w-6 h-6" />
@@ -205,7 +205,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
                 label="Nombre"
                 inputMode="text"
                 name="nombre"
-                placeholder="Nombre del Cliente"
+                placeholder="Nombre del Vendedor"
                 value={values.nombre}
                 error={errors.nombre}
                 touched={touched.nombre}
@@ -223,7 +223,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
                 label="Dirección"
                 inputMode="text"
                 name="direccion"
-                placeholder="Dirección del Cliente"
+                placeholder="Dirección del Vendedor"
                 value={values.direccion}
                 error={errors.direccion}
                 touched={touched.direccion}
@@ -237,16 +237,16 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
               <InputIcon
                 type="text"
                 Icono={FileText}
-                label="RUC"
+                label="Apellido"
                 inputMode="text"
-                name="ruc"
-                placeholder="RUC del Cliente"
-                value={values.ruc}
-                error={errors.ruc}
-                touched={touched.ruc}
+                name="apellido"
+                placeholder="Apellido del Vendedor"
+                value={values.apellido}
+                error={errors.apellido}
+                touched={touched.apellido}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                errores={errores.ruc}
+                errores={errores.apellido}
                 disabled={loading}
               />
 
@@ -257,7 +257,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
                 label="Correo"
                 inputMode="email"
                 name="correo"
-                placeholder="Correo del Cliente"
+                placeholder="Correo del Vendedor"
                 value={values.correo}
                 error={errors.correo}
                 touched={touched.correo}
@@ -274,7 +274,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, cliente, mode }:
                 label="Telefono"
                 name="telefono"
                 inputMode="tel"
-                placeholder="Telefono del Cliente"
+                placeholder="Telefono del Vendedor"
                 value={values.telefono}
                 error={errors.telefono}
                 touched={touched.telefono}

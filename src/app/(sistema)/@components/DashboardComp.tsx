@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Header from "@/components/estructura/Header"
 import Sidebar from "@/components/estructura/SideBar"
 import { ForwardRefExoticComponent, RefAttributes } from "react"
-import { BarChart3, Home, LucideProps, ShoppingCart, Users } from "lucide-react"
+import { BarChart3, Home, LucideProps, ShoppingCart, Table2Icon, Users, UserSquare } from "lucide-react"
 import { usePathname } from "next/navigation"
 
 interface MenuItems {
@@ -17,8 +17,10 @@ interface MenuItems {
 const menuItems: MenuItems[] = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: '/sistema/dashboard' },
   { id: "clientes", label: "Clientes", icon: Users, href: '/sistema/clientes' },
+  { id: "vendedores", label: "Vendedores", icon: UserSquare, href: '/sistema/vendedores' },
   { id: "servicios", label: "Servicios", icon: ShoppingCart, href: '/sistema/servicios' },
   { id: "cotizacion", label: "Cotizacion", icon: BarChart3, href: '/sistema/cotizacion' },
+  { id: "proformas", label: "Proformas", icon: Table2Icon, href: '/sistema/proformas' },
 ]
 
 export default function Dashboard({ children }: { children: React.ReactNode }) {
@@ -58,6 +60,10 @@ export default function Dashboard({ children }: { children: React.ReactNode }) {
         return "Cotizacion"
       case "configuracion":
         return "Configuración"
+      case "proformas":
+        return "Proformas"
+      case "vendedores":
+        return "Vendedores"
       default:
         return "Dashboard"
     }

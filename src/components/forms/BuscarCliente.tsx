@@ -2,6 +2,7 @@
 
 import { Global } from '@/database/Global';
 import React, { useState, useEffect, useCallback } from 'react';
+import { Input } from '../ui/input';
 
 // Tipo para el cliente
 interface Cliente {
@@ -26,12 +27,14 @@ const BuscarCliente: React.FC<ClienteSearchProps> = ({
   placeholder = "Buscar cliente...",
   apiUrl = "/api/clientes/buscar"
 }) => {
-  const [query, setQuery] = useState<string>(nombreCliente || '');
+  const [query, setQuery] = useState<string>(nombreCliente ?? '');
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
-
+  useEffect(() => {
+    console.log(query)
+  }, [query])
   // Función para buscar clientes en el backend
   const buscarClientes = useCallback(async (searchTerm: string) => {
     if (searchTerm.length <= 3) {
@@ -82,7 +85,7 @@ const BuscarCliente: React.FC<ClienteSearchProps> = ({
 
   // Manejar selección de cliente
   const handleClienteSelect = (cliente: Cliente) => {
-    setQuery(cliente.nombre);
+    setQuery(() => `${cliente.nombre}`);
     setShowDropdown(false);
     onClienteSelect?.(cliente);
   };
@@ -97,8 +100,9 @@ const BuscarCliente: React.FC<ClienteSearchProps> = ({
     <div className="relative w-full">
       <label htmlFor="cliente" className='block text-sm font-medium mb-1 text-secondary'>Cliente</label>
       <div className="relative">
-        <input
+        <Input
           type="text"
+          label='Cliente'
           value={query}
           id='cliente'
           onChange={handleInputChange}

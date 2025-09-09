@@ -8,33 +8,34 @@ import Swal from "sweetalert2"
 import axios, { AxiosError } from "axios"
 import { Global } from "@/database/Global"
 import { toast } from "sonner"
-import { CotizacionGeneralInterface } from "@/database/interfaces/CotizacionGeneralInterface"
 import { useRouter } from "next/navigation"
-import CotizacionModal from "@/components/forms/cotizacion/CotizacionModal"
-import { parseDateToTable } from "@/logic/parseDateToTable"
+import { ProformaInterface } from "@/database/interfaces/ProformaInterface"
+import { AiOutlineFilePdf } from "react-icons/ai"
 
 const montserrat = Montserrat({
   subsets: ["latin"]
 })
 
-export default function CotizacionPagina({ cotizacionData }: { cotizacionData: CotizacionGeneralInterface[] }) {
+export default function ProformaPagina({ proformaData }: { proformaData: ProformaInterface[] }) {
 
-  const [servicios, setServicios] = useState<CotizacionGeneralInterface[]>(cotizacionData ?? [])
+  const [proformas, setServicios] = useState<ProformaInterface[]>(proformaData ?? [])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCotizacion, setSelectedCliente] = useState<CotizacionGeneralInterface | null>(null)
+  const [, setIsModalOpen] = useState(false)
+  const [, setSelectedCliente] = useState<ProformaInterface | null>(null)
   const router = useRouter()
 
   const itemsPerPage = 10
 
-  // Filtrar servicios
+  // Filtrar proformas
   const filteredClientes = useMemo(() => {
-    return servicios.filter(
+    if (proformas.length === 0) return []
+    console.log(proformas)
+    return proformas.filter(
       (cotizacion) =>
-        cotizacion.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+        cotizacion.asunto.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  }, [servicios, searchTerm])
+  }, [proformas, searchTerm])
 
   // Paginación
   const totalPages = Math.ceil(filteredClientes.length / itemsPerPage)
@@ -44,17 +45,17 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
 
   // Funciones CRUD
   const handleCreate = () => {
-    router.push('/sistema/cotizacion/agregar')
+    router.push('/sistema/proformas/agregar')
   }
 
-  const handleEdit = (cotizacion: CotizacionGeneralInterface) => {
-    router.push('/sistema/cotizacion/editar/'+ cotizacion.id)
+  const handleEdit = (cotizacion: ProformaInterface) => {
+    router.push('/sistema/proformas/editar/' + cotizacion.id)
   }
 
-  const handleShow = (cotizacion: CotizacionGeneralInterface) => {
+  const handleShow = (cotizacion: ProformaInterface) => {
     setSelectedCliente(cotizacion)
     setIsModalOpen(true)
-  } 
+  }
 
   const handleDelete = (id: number) => {
     Swal.fire({
@@ -68,7 +69,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`${Global.api}/servicios/${id}`, {
+          const response = await axios.delete(`${Global.api}/proformas/${id}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
@@ -89,6 +90,38 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
     });
   }
 
+  async function descargarProformaPdf(id: number) {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/proformas/${id}/pdf`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/pdf",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al descargar PDF: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Crear link temporal para forzar la descarga
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `proforma_${id}.pdf`; // Nombre del archivo descargado
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      // Liberar memoria
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error descargando PDF:", error);
+    }
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -98,8 +131,8 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
       >
         <div>
-          <h1 className="text-3xl font-bold text-primary mb-2">Gestión de Cotizaciones</h1>
-          <p className="text-primary">Administra tu base de datos de cotizaciones</p>
+          <h1 className="text-3xl font-bold text-primary mb-2">Gestión de Proformas</h1>
+          <p className="text-primary">Administra tu base de datos de proformas</p>
         </div>
 
         <motion.button
@@ -109,7 +142,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
           className="mt-4 sm:mt-0 flex items-center space-x-2 px-4 py-2 bg-secondary text-white font-semibold rounded-lg hover:from-[#A5D7E8] hover:to-[#576CBC] transition-all duration-300"
         >
           <Plus className="w-5 h-5" />
-          <span>Nueva Cotizacion</span>
+          <span>Nueva Proforma</span>
         </motion.button>
       </motion.div>
 
@@ -124,7 +157,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black" />
           <input
             type="text"
-            placeholder="Buscar servicios..."
+            placeholder="Buscar proformas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-4 py-3 border border-[#576CBC]/30 rounded-lg text-secondary placeholder-secondary/50 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-300"
@@ -150,6 +183,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Fecha Final</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Días de Entrega</th>
                 <th className="px-6 py-4 text-left text-gray-600 font-bold">Monto Total</th>
+                <th className="px-6 py-4 text-left text-gray-600 font-bold">PDF</th>
                 <th className="px-6 py-4 text-center text-gray-600 font-bold">Acciones</th>
               </tr>
             </thead>
@@ -163,12 +197,21 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
                   className="border-t border-slate-200 hover:bg-secondary transition-colors group"
                 >
                   <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.id}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.descripcion}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.asunto}</td>
                   <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors hidden md:table-cell">{cotizacion.cliente?.nombre}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{(parseDateToTable(String(cotizacion.fecha_inicial)))}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{parseDateToTable(String(cotizacion.fecha_final))}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.dias_entrega}</td>
-                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">$ {cotizacion.monto_total}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{String(cotizacion.fecha_inicial)}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{String(cotizacion.fecha_entrega)}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.dias}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-black duration-300 transition-colors">{cotizacion.moneda === 'PEN' ? 'S/.' : '$'} {cotizacion.importe_total}</td>
+                  <td className="px-6 py-4 text-sm group-hover:text-white text-red-500 duration-300 transition-colors">
+                    <button
+                      type="button"
+                      className="cursor-pointer"
+                      onClick={() => descargarProformaPdf(cotizacion.id ?? 0)}
+                    >
+                      <AiOutlineFilePdf size={26} />
+                    </button>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center space-x-1">
                       <motion.button
@@ -187,7 +230,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
                       </motion.button>
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(cotizacion.id)}
+                        onClick={() => handleDelete(cotizacion.id ?? 0)}
                         className="p-1 text-red-400 hover:text-red-500 hover:bg-red-500/20 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -206,7 +249,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
           <div className="flex items-center justify-between px-6 py-4 border-t border-[#576CBC]/20">
             <div className="text-black text-sm">
               Mostrando {startIndex + 1} a {Math.min(endIndex, filteredClientes.length)} de {filteredClientes.length}{" "}
-              servicios
+              proformas
             </div>
 
             <div className="flex items-center space-x-2">
@@ -245,11 +288,7 @@ export default function CotizacionPagina({ cotizacionData }: { cotizacionData: C
         )}
       </motion.div>
 
-      <CotizacionModal 
-        isOpen={isModalOpen}
-        cotizacion={selectedCotizacion}
-        onClose={() => setIsModalOpen(false)}
-      />
+
     </div>
   )
 }

@@ -1,8 +1,9 @@
-"use client";
+"use client"
 
 import BuscarCliente from "@/components/forms/BuscarCliente";
 
-import { Input } from "@/components/forms/Input";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
 import { Global } from "@/database/Global";
 import { CotizacionAgregarInterface, CotizacionAgregarServicio, CotizacionCajaAgregar } from "@/database/interfaces/CotizacionGeneralInterface";
 import { ServicioInterface } from "@/database/interfaces/ServicioInterface";
@@ -11,7 +12,7 @@ import { calcularDiasEntreFechas } from "@/logic/calcularDiasEntreFechas";
 import { useLoading } from "@/zustand/useLoading";
 
 import axios from "axios";
-import { FieldArray, Formik, FormikErrors, useFormik } from "formik";
+import { FieldArray, Form, Formik, FormikErrors, FormikProps, useFormik } from "formik";
 import { Delete, Plus, Trash, X } from "lucide-react";
 import { motion } from "motion/react";
 import { nanoid } from "nanoid";
@@ -64,15 +65,12 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
     }
   }
 
+
   const {
     values,
     setFieldValue,
     handleChange,
     handleBlur,
-    errors,
-    touched,
-    handleSubmit,
-
   } = useFormik<CotizacionAgregarInterface>({
     initialValues: {
       descripcion: '',
@@ -90,7 +88,7 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
 
   useEffect(() => {
     setFieldValue('dias', calcularDiasEntreFechas(values.fecha_inicial, values.fecha_final))
-  }, [values.fecha_inicial, values.fecha_final])
+  }, [values.fecha_inicial, values.fecha_final, setFieldValue])
 
   useEffect(() => {
     const cotizaciones = values.cotizaciones || [];
@@ -104,7 +102,7 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
   return (
     <>
       <div className="p-6">
-        {/* Header */}
+
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,108 +153,124 @@ export default function AgregarCotizacion({ serviciosData }: { serviciosData: Se
           </div>
         </motion.div>
 
-        <Formik initialValues={initialValues} onSubmit={agregar} className="w-full">
-          <form action="w-full" onSubmit={handleSubmit}>
-            <div className="w-full mb-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Input
-                type="text"
-                label="Descripción"
-                name="descripcion"
-                value={values.descripcion}
-                error={errors.descripcion}
-                touched={touched.descripcion}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
+        <Formik initialValues={initialValues} validationSchema={CotizacionAgregarSchema} onSubmit={agregar} className="w-full" enableReinitialize>
+          {
+            (formik) => (
+              <Form action="w-full">
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"
+                >
+                  <div className="w-full mb-7 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField label="Asunto" error={formik.touched.descripcion ? formik.errors.descripcion : undefined} required>
+                      <Input
+                        type="text"
+                        name="descripcion"
+                        value={formik.values.descripcion}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={!!(formik.touched.descripcion && formik.errors.descripcion)}
+                      />
+                    </FormField>
 
-              <BuscarCliente apiUrl="buscarCliente" onClienteSelect={(cliente) => {
-                setFieldValue('id_cliente', cliente.id)
-              }} />
+                    <BuscarCliente
+                      apiUrl="buscarCliente"
+                      onClienteSelect={(cliente) => {
+                        setFieldValue('id_cliente', cliente.id)
+                      }}
+                      nombreCliente=""
+                    />
 
-              <Input
-                type="date"
-                label="Fecha Inicial"
-                name="fecha_inicial"
-                value={values.fecha_inicial}
-                error={errors.fecha_inicial}
-                touched={touched.fecha_inicial}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
 
-              <Input
-                type="date"
-                label="Fecha Final"
-                name="fecha_final"
-                value={values.fecha_final}
-                error={errors.fecha_final}
-                touched={touched.fecha_final}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
+                    <FormField label="Fecha Inicial" error={formik.touched.fecha_inicial ? formik.errors.fecha_inicial : undefined} required>
+                      <Input
+                        name="fecha_inicial"
+                        type="date"
+                        value={formik.values.fecha_inicial}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={!!(formik.touched.fecha_inicial && formik.errors.fecha_inicial)}
+                      />
+                    </FormField>
 
-              <Input
-                type="number"
-                label="Días"
-                disabled
-                name="dias"
-                value={values.dias}
-                error={errors.dias}
-                touched={touched.dias}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
+                    <FormField label="Fecha Final" error={formik.touched.fecha_final ? formik.errors.fecha_final : undefined} required>
+                      <Input
+                        type="date"
+                        name="fecha_final"
+                        value={formik.values.fecha_final}
+                        error={!!(formik.touched.fecha_final && formik.errors.fecha_final)}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                    </FormField>
 
-              <Input
-                type="number"
-                label="Total"
-                disabled
-                name="precio_total"
-                value={values.precio_total}
-                error={errors.precio_total}
-                touched={touched.precio_total}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
+                    <FormField label="Días" error={formik.touched.dias ? formik.errors.dias : undefined} required>
+                      <Input
+                        type="number"
+                        disabled
+                        name="dias"
+                        value={calcularDiasEntreFechas(formik.values.fecha_inicial, formik.values.fecha_final)}
+                        error={!!(formik.touched.dias && formik.errors.dias)}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                      />
+                    </FormField>
 
-            </div>
+                    <FormField label="Precio Total" error={formik.touched.precio_total ? formik.errors.precio_total : undefined} required>
+                      <Input
+                        type="number"
+                        disabled
+                        name="precio_total"
+                        value={formik.values.precio_total}
+                        error={!!(formik.touched.precio_total && formik.errors.precio_total)}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                      />
+                    </FormField>
 
-            <div className="">
-              <FieldArray
-                name="cotizaciones"
-                render={() => {
-                  return (
-                    <div>
-                      {
-                        values.cotizaciones.map((cotizacion, index) => {
-                          return (
-                            <div key={cotizacion.id}>
-                              <CotizacionCajaForm
-                                cotizacion={cotizacion}
-                                handleBlur={handleBlur}
-                                handleChange={handleChange}
-                                servicios={servicios}
-                                setFieldValue={setFieldValue}
-                                values={values}
-                                index={index}
-                              />
-                            </div>
-                          )
-                        })
-                      }
-                    </div>
-                  )
-                }}
-              />
-            </div>
+                  </div>
+                </motion.section>
+                <div className="">
+                  <FieldArray
+                    name="cotizaciones"
+                    render={() => {
+                      return (
+                        <div>
+                          {
+                            values.cotizaciones.map((cotizacion, index) => {
+                              return (
+                                <div key={cotizacion.id}>
+                                  <CotizacionCajaForm
+                                    cotizacion={cotizacion}
+                                    handleBlur={handleBlur}
+                                    handleChange={handleChange}
+                                    servicios={servicios}
+                                    setFieldValue={setFieldValue}
+                                    values={values}
+                                    index={index}
+                                    formik={formik}
+                                  />
+                                </div>
+                              )
+                            })
+                          }
+                        </div>
+                      )
+                    }}
+                  />
+                </div>
 
-            <button
-              className="px-4 py-2 bg-primary text-white rounded-xl cursor-pointer hover:bg-secondary duration-300 transition-all"
-              type="submit"
-            >
-              Registrar Cotización
-            </button>
-          </form>
+                <button
+                  className="px-4 py-2 bg-primary text-white rounded-xl cursor-pointer hover:bg-secondary duration-300 transition-all"
+                  type="submit"
+                >
+                  Registrar Cotización
+                </button>
+              </Form>
+            )
+          }
         </Formik>
       </div>
     </>
@@ -270,7 +284,8 @@ function CotizacionCajaForm({
   handleChange,
   index,
   values,
-  servicios
+  servicios,
+  formik
 }: {
   cotizacion: CotizacionCajaAgregar
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => Promise<void> | Promise<FormikErrors<CotizacionAgregarInterface>>,
@@ -284,7 +299,8 @@ function CotizacionCajaForm({
     (e: React.FocusEvent<any, Element>): void;
     <T = any>(fieldOrEvent: T): T extends string ? (e: any) => void : void;
   },
-  servicios: ServicioInterface[] | null
+  servicios: ServicioInterface[] | null,
+  formik: FormikProps<CotizacionAgregarInterface>
 }) {
 
   const [verServicios, setVerServicios] = useState(false)
@@ -299,7 +315,7 @@ function CotizacionCajaForm({
 
   useEffect(() => {
     setFieldValue(`cotizaciones.${index}.precio_total`, values.cotizaciones[index].cantidad * values.cotizaciones[index].precio_unit)
-  }, [values.cotizaciones[index].cantidad, values.cotizaciones[index].precio_unit])
+  }, [index, setFieldValue, values.cotizaciones])
 
   return (
     <div className="mt-10 space-y-3">
@@ -326,66 +342,81 @@ function CotizacionCajaForm({
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Input
-          name={`cotizaciones.${index}.descripcion`}
-          value={values.cotizaciones[index].descripcion}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Descripción"
-        />
+        <FormField label="Descripción" error={formik.touched.descripcion ? formik.errors.descripcion : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.descripcion`}
+            value={values.cotizaciones[index].descripcion}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Descripción"
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.cantidad`}
-          value={values.cotizaciones[index].cantidad}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Cantidad"
-        />
+        <FormField label="Cantidad" error={formik.touched.cotizaciones?.[index].cantidad ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).cantidad : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.cantidad`}
+            value={values.cotizaciones[index].cantidad}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Cantidad"
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.costo_directo`}
-          value={values.cotizaciones[index].costo_directo}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Costo Directo"
-          disabled
-        />
+        <FormField label="Costo Directo" error={formik.touched.cotizaciones?.[index].costo_directo ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).costo_directo : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.costo_directo`}
+            value={values.cotizaciones[index].costo_directo}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Costo Directo"
+            disabled
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.gg`}
-          value={values.cotizaciones[index].gg}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="GG"
-          disabled
-        />
+        <FormField label="GG" error={formik.touched.cotizaciones?.[index].gg ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).gg : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.gg`}
+            value={values.cotizaciones[index].gg}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="GG"
+            disabled
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.utilidad`}
-          value={values.cotizaciones[index].utilidad}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Utilidad"
-          disabled
-        />
+        <FormField label="Utilidad" error={formik.touched.cotizaciones?.[index].utilidad ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).utilidad : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.utilidad`}
+            value={values.cotizaciones[index].utilidad}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Utilidad"
+            disabled
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.precio_unit`}
-          value={values.cotizaciones[index].precio_unit}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Precio Unitario"
-          disabled
-        />
+        <FormField label="Precio Unitario" error={formik.touched.cotizaciones?.[index].precio_unit ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).precio_unit : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.precio_unit`}
+            value={values.cotizaciones[index].precio_unit}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Precio Unitario"
+            disabled
+          />
+        </FormField>
 
-        <Input
-          name={`cotizaciones.${index}.precio_total`}
-          value={values.cotizaciones[index].precio_total}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          label="Precio Total"
-          disabled
-        />
+        <FormField label="Precio Total" error={formik.touched.cotizaciones?.[index].precio_total ? (formik.errors.cotizaciones?.[index] as FormikErrors<CotizacionCajaAgregar>).precio_total : undefined} required>
+          <Input
+            name={`cotizaciones.${index}.precio_total`}
+            value={values.cotizaciones[index].precio_total}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            label="Precio Total"
+            disabled
+          />
+        </FormField>
+
       </div>
 
       {
@@ -444,6 +475,7 @@ function CotizacionCajaForm({
                                 values={values}
                                 indexPadre={index}
                                 key={servicioItem.id}
+                                formik={formik}
                               />
                             )
                           } else if (servicioItem.tipo === 'SERVICIO') {
@@ -457,6 +489,7 @@ function CotizacionCajaForm({
                                 setFieldValue={setFieldValue}
                                 values={values}
                                 key={servicioItem.id}
+                                formik={formik}
                               />
                             )
                           }
@@ -481,7 +514,8 @@ function AreaForm({
   index,
   indexPadre,
   handleChange,
-  handleBlur
+  handleBlur,
+  formik
 }: {
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => Promise<void> | Promise<FormikErrors<CotizacionAgregarInterface>>,
   values: CotizacionAgregarInterface,
@@ -495,7 +529,8 @@ function AreaForm({
     (e: React.FocusEvent<any, Element>): void;
     <T = any>(fieldOrEvent: T): T extends string ? (e: any) => void : void;
   },
-  servicioItem: CotizacionAgregarServicio
+  servicioItem: CotizacionAgregarServicio,
+  formik: FormikProps<CotizacionAgregarInterface>
 }) {
 
   const workerRef = useRef<Worker>(null);
@@ -513,7 +548,7 @@ function AreaForm({
 
   useEffect(() => {
     setFieldValue(`cotizaciones.${indexPadre}.servicios.${index}.subtotal`, Number(values.cotizaciones[indexPadre].servicios[index].horas) * Number(values.cotizaciones[indexPadre].servicios[index].costo))
-  }, [values.cotizaciones[indexPadre].servicios[index].horas, values.cotizaciones[indexPadre].servicios[index].costo])
+  }, [index, indexPadre, setFieldValue, values.cotizaciones])
 
   useEffect(() => {
 
@@ -528,7 +563,7 @@ function AreaForm({
     setFieldValue(`cotizaciones.${indexPadre}.costo_directo`, total)
     setFieldValue(`cotizaciones.${indexPadre}.precio_unit`, Number(total) + total * 0.1 + total * 0.3);
 
-  }, [values.cotizaciones?.[indexPadre]?.servicios, indexPadre, setFieldValue]);
+  }, [indexPadre, setFieldValue, values.cotizaciones]);
 
   const borrarArea = () => {
     setFieldValue(`cotizaciones.${indexPadre}.servicios`, values.cotizaciones[indexPadre].servicios.filter((item) => item.id !== servicioItem.id))
@@ -545,43 +580,57 @@ function AreaForm({
           <X size={25} />
         </button>
       </div>
-      <Input
-        label={`Descripción`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.descripcion`}
-        type="text"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].descripcion}
+      <FormField
+        label="Descripción"
+        error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].descripcion ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).descripcion : undefined}
+        required
+      >
+        <Input
+          label={`Descripción`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.descripcion`}
+          type="text"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].descripcion}
+        />
+      </FormField>
 
-      />
-      <Input
-        label={`Horas`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.horas`}
-        type="number"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].horas}
+      <FormField label="Unidad de Medida" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].horas ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).horas : undefined} required>
+        <Input
+          label={`Horas`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.horas`}
+          type="number"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].horas}
 
-      />
-      <Input
-        label={`Costo`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.costo`}
-        type="text"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].costo}
+        />
+      </FormField>
 
-      />
-      <Input
-        label={`Subtotal`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.subtotal`}
-        type="number"
-        disabled
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].subtotal}
+      <FormField label="Costo" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].costo ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).costo : undefined} required>
+        <Input
+          label={`Costo`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.costo`}
+          type="text"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].costo}
 
-      />
+        />
+      </FormField>
+
+      <FormField label="Subtotal" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].subtotal ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).subtotal : undefined} required>
+        <Input
+          label={`Subtotal`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.subtotal`}
+          type="number"
+          disabled
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].subtotal}
+
+        />
+      </FormField>
     </div>
   )
 }
@@ -593,7 +642,8 @@ function ServicioForm({
   index,
   handleChange,
   indexPadre,
-  handleBlur
+  handleBlur,
+  formik
 }: {
   setFieldValue: (field: string, value: any, shouldValidate?: boolean) => Promise<void> | Promise<FormikErrors<CotizacionAgregarInterface>>,
   values: CotizacionAgregarInterface,
@@ -607,12 +657,13 @@ function ServicioForm({
     (e: React.FocusEvent<any, Element>): void;
     <T = any>(fieldOrEvent: T): T extends string ? (e: any) => void : void;
   },
-  servicioItem: CotizacionAgregarServicio
+  servicioItem: CotizacionAgregarServicio,
+  formik: FormikProps<CotizacionAgregarInterface>
 }) {
 
   useEffect(() => {
     setFieldValue(`cotizaciones.${indexPadre}.servicios.${index}.subtotal`, Number(values.cotizaciones[indexPadre].servicios[index].precio_unit) * Number(values.cotizaciones[indexPadre].servicios[index].cantidad))
-  }, [values.cotizaciones[indexPadre].servicios[index].cantidad, values.cotizaciones[indexPadre].servicios[index].precio_unit])
+  }, [index, indexPadre, setFieldValue, values.cotizaciones])
 
   useEffect(() => {
     const servicios = values.cotizaciones?.[indexPadre]?.servicios || [];
@@ -624,7 +675,7 @@ function ServicioForm({
     setFieldValue(`cotizaciones.${indexPadre}.precio_unit`, Number(total) + total * 0.1 + total * 0.3);
     setFieldValue(`cotizaciones.${indexPadre}.gg`, total * 0.1)
     setFieldValue(`cotizaciones.${indexPadre}.utilidad`, total * 0.3)
-  }, [values.cotizaciones?.[indexPadre]?.servicios, indexPadre, setFieldValue]);
+  }, [indexPadre, setFieldValue, values.cotizaciones]);
 
   return (
     <div className="bg-white shadow-lg p-5 rounded-xl space-y-3" key={servicioItem.id}>
@@ -639,43 +690,52 @@ function ServicioForm({
           <X size={25} />
         </button>
       </div>
-      <Input
-        label={`Descripción`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.descripcion`}
-        type="text"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].descripcion}
+      <FormField label="Descripción" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].descripcion ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).descripcion : undefined} required>
+        <Input
+          label={`Descripción`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.descripcion`}
+          type="text"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].descripcion}
+        />
+      </FormField>
 
-      />
-      <Input
-        label={`Cantidad`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.cantidad`}
-        type="number"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].cantidad}
+      <FormField label="Cantidad" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].cantidad ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).cantidad : undefined} required>
+        <Input
+          label={`Cantidad`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.cantidad`}
+          type="number"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].cantidad}
 
-      />
-      <Input
-        label={`Precio Unitario`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.precio_unit`}
-        type="text"
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].precio_unit}
+        />
+      </FormField>
 
-      />
-      <Input
-        label={`Precio Total`}
-        name={`cotizaciones.${indexPadre}.servicios.${index}.subTotal`}
-        type="number"
-        disabled
-        onChange={handleChange}
-        onBlur={handleBlur}
-        value={values.cotizaciones[indexPadre].servicios[index].subtotal}
+      <FormField label="Precio Unitario" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].precio_unit ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).precio_unit : undefined} required>
+        <Input
+          label={`Precio Unitario`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.precio_unit`}
+          type="text"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].precio_unit}
+        />
+      </FormField>
 
-      />
+      <FormField label="Precio Total" error={formik.touched.cotizaciones?.[indexPadre].servicios?.[index].subtotal ? ((formik.errors.cotizaciones?.[indexPadre] as FormikErrors<CotizacionCajaAgregar>).servicios?.[index] as FormikErrors<CotizacionAgregarServicio>).subtotal : undefined} required>
+        <Input
+          label={`Precio Total`}
+          name={`cotizaciones.${indexPadre}.servicios.${index}.subTotal`}
+          type="number"
+          disabled
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.cotizaciones[indexPadre].servicios[index].subtotal}
+
+        />
+      </FormField>
     </div>
   )
 }
