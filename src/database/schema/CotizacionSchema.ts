@@ -27,7 +27,14 @@ const CotizacionCajaAgregarSchema = Yup.object().shape({
 });
 
 export const CotizacionAgregarSchema = Yup.object().shape({
-  prueba: Yup.string()
+  descripcion: Yup.string().required('Descripción requerida'),
+  precio_total: Yup.number().min(0, 'Precio total no válido').required('Precio total requerido'),
+  fecha_inicial: Yup.string().required('Fecha inicial requerida'),
+  fecha_final: Yup.string().required('Fecha final requerida'),
+  id_cliente: Yup.number().required('ID de cliente requerido'),
+  dias: Yup.number().min(0, 'Días no válidos').required('Número de días requerido'),
+
+  cotizaciones: Yup.array().of(CotizacionCajaAgregarSchema)
 });
 
 /**
